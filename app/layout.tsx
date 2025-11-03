@@ -4,7 +4,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ToastWrapper from "./components/ToastWrapper";
-import SessionInitializer from "./components/SessionInitializer"; // ✅ nouveau composant
+import SessionInitializer from "./components/SessionInitializer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +19,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Découvrir le Pays Basque",
   description: "Le guide local des meilleures adresses du Pays Basque 🌶️",
+  metadataBase: new URL("https://decouvrirlepaysbasque.fr"), // ✅ base canonique pour tout le site
+  alternates: {
+    canonical: "https://decouvrirlepaysbasque.fr", // ✅ version officielle
+  },
 };
 
 export default function RootLayout({
@@ -28,19 +32,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
+      <head>
+        {/* ✅ Balise canonique dynamique côté client (utile si Next génère des pages dynamiques) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                const canonical = document.createElement('link');
+                canonical.setAttribute('rel', 'canonical');
+                canonical.setAttribute('href', 'https://decouvrirlepaysbasque.fr' + window.location.pathname);
+                document.head.appendChild(canonical);
+              }
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#fafafa] text-gray-800`}
         suppressHydrationWarning={true}
       >
         <Navbar />
-
-        {/* ✅ Initialise un session_id unique pour chaque visiteur */}
         <SessionInitializer />
-
         <main className="min-h-screen">{children}</main>
         <Footer />
-
-        {/* ✅ Toasts (notifications) */}
         <ToastWrapper />
       </body>
     </html>

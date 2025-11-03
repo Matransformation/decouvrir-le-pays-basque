@@ -1,32 +1,36 @@
 // app/sitemap.ts
+import { MetadataRoute } from "next";
 import { supabase } from "../lib/supabaseClient";
 
-export const revalidate = 3600; // ♻️ régénération toutes les 1h
+export const revalidate = 3600; // ♻️ régénération automatique toutes les 1h
 
-export default async function sitemap() {
-  // 🔍 On récupère tous les slugs depuis la table "lieux"
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = "https://decouvrirlepaysbasque.fr"; // 🔹 ton domaine officiel
+
+  // 🔍 Récupération des lieux dans Supabase
   const { data: lieux } = await supabase
     .from("lieux")
     .select("slug, updated_at");
 
-  // 🔗 On crée les entrées du sitemap
+  // 🔗 Génération des URLs dynamiques
   const lieuUrls =
     lieux?.map((lieu) => ({
-      url: `https://decouvrirlepaysbasque.com/lieu/${lieu.slug}`,
+      url: `${baseUrl}/lieu/${lieu.slug}`,
       lastModified: lieu.updated_at ? new Date(lieu.updated_at) : new Date(),
-      changeFrequency: "weekly",
+      changeFrequency: "weekly" as const,
       priority: 0.8,
-    })) || [];
+    })) ?? [];
 
-  // 🏠 Page d’accueil + autres pages statiques éventuelles
+  // 🏠 Pages statiques (accueil, autres si tu veux en ajouter plus tard)
   const staticUrls = [
     {
-      url: "https://decouvrirlepaysbasque.com",
+      url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: "weekly",
+      changeFrequency: "weekly" as const,
       priority: 1,
     },
   ];
 
+  // ✅ Fusion et retour du sitemap complet
   return [...staticUrls, ...lieuUrls];
 }
