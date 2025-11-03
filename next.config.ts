@@ -9,15 +9,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: "/(.*)",
-        destination: "https://decouvrirlepaysbasque.fr/:path*",
-        permanent: true,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
