@@ -1,0 +1,67 @@
+.prose p {
+  margin-bottom: 1.2em;
+  line-height: 1.8;
+  font-size: 1.05rem;
+  color: #333;
+}
+
+.prose h2,
+.prose h3 {
+  margin-top: 2em;
+  margin-bottom: 0.8em;
+  font-weight: 700;
+}
+
+.prose h2 {
+  color: #dc2626;
+  font-size: 1.6rem;
+}
+
+.prose h3 {
+  color: #1f2937;
+  font-size: 1.3rem;
+}
+
+.prose ul,
+.prose ol {
+  margin: 1.5em 0;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin-bottom: 0.6em;
+  line-height: 1.7;
+}
+
+.prose strong {
+  color: #111;
+  font-weight: 600;
+}
+
+.prose em {
+  font-style: italic;
+  color: #444;
+}
+
+.prose img {
+  border-radius: 12px;
+  margin: 1.5rem auto;
+  display: block;
+}
+
+.prose a {
+  color: #dc2626;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  color: #b91c1c;
+}
+
+.prose p[style*="text-align:center"] {
+  text-align: center !important;
+  margin-top: 2rem !important;
+  font-weight: 600;
+  font-size: 1.1rem;
+}

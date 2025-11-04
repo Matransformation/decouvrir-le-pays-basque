@@ -5,6 +5,54 @@ import Link from "next/link";
 import Image from "next/image";
 import HomeMiniMap from "./components/HomeMiniMap";
 
+async function BlogPreview() {
+  const { data: articles, error } = await supabase
+    .from("articles")
+    .select("id, title, slug, image_url, excerpt, created_at")
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  if (error) {
+    console.error("Erreur Supabase (articles):", error);
+    return <p className="text-center text-gray-500">Erreur lors du chargement du blog.</p>;
+  }
+
+  if (!articles || articles.length === 0) {
+    return <p className="text-center text-gray-500">Aucun article pour le moment.</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      {articles.map((article) => (
+        <Link
+          key={article.id}
+          href={`/blog/${article.slug}`}
+          className="block rounded-xl overflow-hidden bg-white shadow hover:shadow-lg transition"
+        >
+          {article.image_url && (
+            <img
+              src={article.image_url}
+              alt={article.title}
+              className="w-full h-48 object-cover"
+            />
+          )}
+          <div className="p-5">
+            <h3 className="text-lg font-semibold text-red-600 mb-2 line-clamp-2">
+              {article.title}
+            </h3>
+            <p className="text-gray-600 text-sm line-clamp-3 mb-3">
+              {article.excerpt}
+            </p>
+            <p className="text-xs text-gray-400">
+              {new Date(article.created_at).toLocaleDateString("fr-FR")}
+            </p>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export const revalidate = 0;
 
 export const metadata = {
@@ -148,6 +196,18 @@ export default async function Home() {
             Voir la carte complète →
           </Link>
         </div>
+      </section>
+
+      {/* === DERNIERS ARTICLES DE BLOG === */}
+      <section className="max-w-6xl mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold text-center mb-4">Les derniers articles du blog</h2>
+        <p className="text-center text-gray-500 mb-10">
+          Inspirations, balades et bons plans pour découvrir le Pays Basque autrement 🌿
+        </p>
+
+        {/* 🔥 Chargement des articles depuis Supabase */}
+        {/** On ajoute ce bloc juste avant la carte */}
+        <BlogPreview />
       </section>
 
       {/* === APERÇU CARTE === */}
