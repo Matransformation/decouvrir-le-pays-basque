@@ -7,6 +7,20 @@ import HomeMiniMap from "./components/HomeMiniMap";
 
 export const revalidate = 0;
 
+export const metadata = {
+  title: "Découvrir le Pays Basque – Guide local, plages, villages et bons plans",
+  description:
+    "Le guide local pour explorer le Pays Basque 🇫🇷 : plages, villages, randonnées, restaurants et bons plans. Découvrez les plus belles adresses entre océan et montagne.",
+  keywords:
+    "Pays Basque, guide local, Biarritz, Bayonne, Saint-Jean-de-Luz, randonnées, plages, restaurants, villages, bons plans",
+  robots: "index,follow",
+  alternates: {
+    canonical: "https://decouvrirlepaysbasque.fr/",
+    languages: { fr: "https://decouvrirlepaysbasque.fr/" },
+  },
+};
+
+
 export default async function Home() {
   const { data: lieux, error } = await supabase
     .from("lieux")
