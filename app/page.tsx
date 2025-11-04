@@ -16,16 +16,17 @@ export default async function Home() {
 
   if (error) console.error("Erreur Supabase:", error);
 
+  // ✅ Images compressées Cloudinary (q_60)
   const categories = [
-    { name: "Plages", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400,c_fill/v1761918619/Plages_co%CC%82te_basque_hczizy.jpg" },
-    { name: "Restaurants", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400,c_fill/v1761918620/Restaurants_co%CC%82te_basque_bf6zir.jpg" },
-    { name: "Randonnées", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400,c_fill/v1761918620/Randonne%CC%81es_co%CC%82te_basque_gffivs.jpg" },
-    { name: "Villages", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400,c_fill/v1761918620/Villages_co%CC%82te_basque_gsu6gp.jpg" },
-    { name: "Hébergements", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400,c_fill/v1761918619/Hebergements_co%CC%82te_basque_ioz58z.jpg" },
-    { name: "Culture & traditions", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400,c_fill/v1761918619/Cultures_et_tradition_co%CC%82te_basque_czpj9h.jpg" },
-    { name: "Activités", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400,c_fill/v1761941411/activite%CC%81s_co%CC%82te_basque_dee5qx.jpg" },
-    { name: "Activités enfants", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400,c_fill/v1761941733/activite%CC%81s_enfants_co%CC%82te_basque_wutbh4.jpg" },
-    { name: "Brunch", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400,c_fill/v1761942132/Brunch_co%CC%82te_basque_mgcedp.jpg" },
+    { name: "Plages", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400,c_fill/v1761918619/Plages_co%CC%82te_basque_hczizy.jpg" },
+    { name: "Restaurants", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400,c_fill/v1761918620/Restaurants_co%CC%82te_basque_bf6zir.jpg" },
+    { name: "Randonnées", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400,c_fill/v1761918620/Randonne%CC%81es_co%CC%82te_basque_gffivs.jpg" },
+    { name: "Villages", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400,c_fill/v1761918620/Villages_co%CC%82te_basque_gsu6gp.jpg" },
+    { name: "Hébergements", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400,c_fill/v1761918619/Hebergements_co%CC%82te_basque_ioz58z.jpg" },
+    { name: "Culture & traditions", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400,c_fill/v1761918619/Cultures_et_tradition_co%CC%82te_basque_czpj9h.jpg" },
+    { name: "Activités", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400,c_fill/v1761941411/activite%CC%81s_co%CC%82te_basque_dee5qx.jpg" },
+    { name: "Activités enfants", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400,c_fill/v1761941733/activite%CC%81s_enfants_co%CC%82te_basque_wutbh4.jpg" },
+    { name: "Brunch", image: "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400,c_fill/v1761942132/Brunch_co%CC%82te_basque_mgcedp.jpg" },
   ];
 
   return (
@@ -37,6 +38,7 @@ export default async function Home() {
           alt="Pays Basque – entre mer et montagne"
           fill
           priority
+          fetchPriority="high"
           className="object-cover"
         />
         <div className="absolute inset-0 bg-black/40" />
@@ -89,6 +91,7 @@ export default async function Home() {
                 width={600}
                 height={400}
                 loading="lazy"
+                decoding="async"
                 className="object-cover w-full h-36 group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition" />
@@ -113,8 +116,8 @@ export default async function Home() {
                   ...lieu,
                   image_url:
                     lieu.image_urls?.[0]
-                      ? `${lieu.image_urls[0]}?f_auto,q_70,w_600,h_400,c_fill`
-                      : "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_70,w_600,h_400/v1730364100/fallback.jpg",
+                      ? `${lieu.image_urls[0]}?f_auto,q_60,w_600,h_400,c_fill`
+                      : "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400/v1730364100/fallback.jpg",
                 }}
               />
             ))}
