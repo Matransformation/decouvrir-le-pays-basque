@@ -17,7 +17,13 @@ type Lieu = {
   image_urls?: string[] | null;
 };
 
-export default function LieuxClient({ lieux }: { lieux: Lieu[] }) {
+export default function LieuxClient({
+  lieux,
+  mode = "complet", // 👈 nouveau paramètre
+}: {
+  lieux: Lieu[];
+  mode?: "complet" | "carte";
+}) {
   const [ville, setVille] = useState("");
   const [categorie, setCategorie] = useState("");
   const [selectedLieu, setSelectedLieu] = useState<Lieu | null>(null);
@@ -49,10 +55,25 @@ export default function LieuxClient({ lieux }: { lieux: Lieu[] }) {
     const withCoords = lieuxFiltres.filter(
       (l) => typeof l.latitude === "number" && typeof l.longitude === "number"
     );
-    if (withCoords.length) return [withCoords[0].latitude!, withCoords[0].longitude!];
+    if (withCoords.length)
+      return [withCoords[0].latitude!, withCoords[0].longitude!];
     return [43.4832, -1.5586]; // Bayonne par défaut
   }, [lieuxFiltres, selectedLieu]);
 
+  // 🟢 MODE "carte seule"
+  if (mode === "carte") {
+    return (
+      <div className="w-full h-[80vh] rounded-xl overflow-hidden shadow-md my-10">
+        <MapComponent
+          lieux={lieuxFiltres}
+          center={center}
+          selectedLieu={selectedLieu}
+        />
+      </div>
+    );
+  }
+
+  // 🟠 MODE COMPLET (filtres + carte)
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
       {/* === Filtres + Liste === */}

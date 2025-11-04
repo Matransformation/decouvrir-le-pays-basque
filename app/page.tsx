@@ -25,7 +25,6 @@ export default async function Home() {
     { name: "Activités", image: "https://res.cloudinary.com/diccvjf98/image/upload/v1761941411/activite%CC%81s_co%CC%82te_basque_dee5qx.jpg" },
     { name: "Activités enfants", image: "https://res.cloudinary.com/diccvjf98/image/upload/v1761941733/activite%CC%81s_enfants_co%CC%82te_basque_wutbh4.jpg" },
     { name: "Brunch", image: "https://res.cloudinary.com/diccvjf98/image/upload/v1761942132/Brunch_co%CC%82te_basque_mgcedp.jpg" },
-
   ];
 
   return (
@@ -38,10 +37,7 @@ export default async function Home() {
             "url('https://res.cloudinary.com/diccvjf98/image/upload/v1761916136/Votre_texte_de_paragraphe_wt8w7a.jpg')",
         }}
       >
-        {/* Voile sombre */}
         <div className="absolute inset-0 bg-black/40" />
-
-        {/* Contenu Hero */}
         <div className="relative z-10 flex flex-col justify-center items-center text-center h-full px-4">
           <div className="text-white">
             <h1 className="text-5xl md:text-6xl font-extrabold drop-shadow-xl mb-4">
@@ -52,30 +48,24 @@ export default async function Home() {
             </p>
           </div>
 
-         {/* ✅ Barre de recherche fine et propre */}
-<div className="w-full max-w-xl mt-2 relative">
-  {/* Loupe SVG */}
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 20 20"
-    fill="currentColor"
-    className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10"
-  >
-    <path
-      fillRule="evenodd"
-      d="M9 3.5a5.5 5.5 0 104.38 9.05l3.04 3.04a.75.75 0 101.06-1.06l-3.04-3.04A5.5 5.5 0 009 3.5zM4.5 9a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"
-      clipRule="evenodd"
-    />
-  </svg>
-
-  {/* Barre blanche semi-transparente */}
-  <div className="relative backdrop-blur-sm">
-    <SearchBar />
-  </div>
-</div>
-
-
-
+          {/* ✅ Barre de recherche fine et propre */}
+          <div className="w-full max-w-xl mt-2 relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9 3.5a5.5 5.5 0 104.38 9.05l3.04 3.04a.75.75 0 101.06-1.06l-3.04-3.04A5.5 5.5 0 009 3.5zM4.5 9a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div className="relative backdrop-blur-sm">
+              <SearchBar />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -90,7 +80,7 @@ export default async function Home() {
           {categories.map((cat) => (
             <Link
               key={cat.name}
-              href={`/lieux?categorie=${encodeURIComponent(cat.name)}`}
+              href={`/categorie/${encodeURIComponent(cat.name)}`} // ✅ redirection vers nouvelle page
               className="relative rounded-xl overflow-hidden shadow-md hover:shadow-lg group"
             >
               <img
@@ -115,13 +105,14 @@ export default async function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {lieux.map((lieu) => (
               <LieuCard
-              key={lieu.slug}
-              lieu={{
-                ...lieu,
-                image_url: lieu.image_urls?.[0] || "https://res.cloudinary.com/diccvjf98/image/upload/v1730364100/fallback.jpg",
-              }}
-            />
-            
+                key={lieu.slug}
+                lieu={{
+                  ...lieu,
+                  image_url:
+                    lieu.image_urls?.[0] ||
+                    "https://res.cloudinary.com/diccvjf98/image/upload/v1730364100/fallback.jpg",
+                }}
+              />
             ))}
           </div>
         ) : (
@@ -129,8 +120,9 @@ export default async function Home() {
         )}
 
         <div className="text-center mt-10">
+          {/* ✅ redirige vers une catégorie de ton choix (ou la plus large, ex: “Plages”) */}
           <Link
-            href="/lieux"
+            href="/categorie/Plages"
             className="inline-block bg-[#e63946] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#d62839] transition"
           >
             Voir la carte complète →
