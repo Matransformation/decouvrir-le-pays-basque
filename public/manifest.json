@@ -1,9 +1,14 @@
 {
+    "id": "/",
     "name": "Découvrir le Pays Basque",
     "short_name": "Pays Basque",
+    "lang": "fr",
+    "dir": "ltr",
     "description": "Le guide local des plus belles plages, villages et randonnées du Pays Basque 🌶️",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
     "background_color": "#ffffff",
     "theme_color": "#e63946",
     "orientation": "portrait-primary",
@@ -22,7 +27,7 @@
         "src": "/apple-touch-icon.png",
         "sizes": "180x180",
         "type": "image/png",
-        "purpose": "maskable"
+        "purpose": "maskable any"
       }
     ]
   }
