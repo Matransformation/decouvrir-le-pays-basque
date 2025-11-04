@@ -78,7 +78,7 @@ export default function LieuxClient({
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
       {/* === Filtres + Liste === */}
       <div className="space-y-4 md:col-span-1">
-        <h1 className="text-2xl font-bold mb-4">Découvrir les lieux</h1>
+        <h2 className="text-2xl font-bold mb-4">Découvrir les lieux</h2>
 
         {/* Filtres */}
         <div>
