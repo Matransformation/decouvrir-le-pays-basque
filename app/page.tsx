@@ -120,25 +120,25 @@ export default async function Home() {
       {/* === LIEUX RÉCENTS === */}
       <section className="max-w-6xl mx-auto px-6 py-16 bg-white rounded-3xl shadow-sm">
         <h2 className="text-3xl font-bold mb-8 text-center">Les derniers lieux ajoutés</h2>
-
         {lieux && lieux.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {lieux.map((lieu) => (
-              <LieuCard
-                key={lieu.slug}
-                lieu={{
-                  ...lieu,
-                  image_url:
-                    lieu.image_urls?.[0]
-                      ? `${lieu.image_urls[0]}?f_auto,q_60,w_600,h_400,c_fill`
-                      : "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400/v1730364100/fallback.jpg",
-                }}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-gray-500">Aucun lieu n’a encore été ajouté.</p>
-        )}
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {lieux.map((lieu) => (
+      <LieuCard
+        key={lieu.slug}
+        lieu={{
+          ...lieu,
+          image_url:
+            lieu.image_url
+              ? `${lieu.image_url}?f_auto,q_60,w_600,h_400,c_fill`
+              : "https://res.cloudinary.com/diccvjf98/image/upload/f_auto,q_60,w_600,h_400/v1730364100/fallback.jpg",
+        }}
+      />
+    ))}
+  </div>
+) : (
+  <p className="text-center text-gray-500">Aucun lieu n’a encore été ajouté.</p>
+)}
+
 
         <div className="text-center mt-10">
           <Link

@@ -2,12 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Menu, X, Heart, MessageCircle, ChevronDown } from "lucide-react";
 
-/* ============================================================
-   🗂️ CATÉGORIES (mêmes images que sur l’accueil)
-   ============================================================ */
 const categories = [
   { name: "Plages", image: "https://res.cloudinary.com/diccvjf98/image/upload/v1761918619/Plages_co%CC%82te_basque_hczizy.jpg" },
   { name: "Restaurants", image: "https://res.cloudinary.com/diccvjf98/image/upload/v1761918620/Restaurants_co%CC%82te_basque_bf6zir.jpg" },
@@ -24,6 +21,16 @@ export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [showMega, setShowMega] = useState(false);
+  const closeTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleEnter = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setShowMega(true);
+  };
+
+  const handleLeave = () => {
+    closeTimer.current = setTimeout(() => setShowMega(false), 200);
+  };
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
@@ -51,8 +58,8 @@ export default function Navbar() {
           {/* === MEGA MENU === */}
           <div
             className="relative"
-            onMouseEnter={() => setShowMega(true)}
-            onMouseLeave={() => setShowMega(false)}
+            onMouseEnter={handleEnter}
+            onMouseLeave={handleLeave}
           >
             <button
               className={`flex items-center gap-1 hover:text-red-600 transition ${
@@ -64,7 +71,11 @@ export default function Navbar() {
             </button>
 
             {showMega && (
-              <div className="absolute left-0 top-full mt-2 w-[720px] bg-white shadow-lg border border-gray-100 rounded-xl p-4 grid grid-cols-3 gap-4 z-50">
+              <div
+                className="absolute left-0 top-full mt-2 w-[720px] bg-white shadow-xl border border-gray-100 rounded-xl p-4 grid grid-cols-3 gap-4 z-50"
+                onMouseEnter={handleEnter} // ✅ Empêche la fermeture quand la souris est dans le menu
+                onMouseLeave={handleLeave}
+              >
                 {categories.map((cat) => (
                   <Link
                     key={cat.name}
@@ -132,7 +143,6 @@ export default function Navbar() {
             Accueil
           </Link>
 
-          {/* Catégories mobile */}
           <div>
             <p className="text-sm text-gray-500 mb-2">Découvrir</p>
             <div className="grid grid-cols-2 gap-3">
