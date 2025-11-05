@@ -1,4 +1,3 @@
-// app/sitemap.ts
 import { MetadataRoute } from "next";
 import { supabase } from "../lib/supabaseClient";
 
@@ -23,29 +22,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })) ?? [];
 
   /* ============================================================
-     2️⃣ Catégories principales (fixes)
+     2️⃣ Catégories de lieux (dynamiques dans Supabase)
   ============================================================ */
-  const categories = [
-    "Plages",
-    "Restaurants",
-    "Randonnées",
-    "Villages",
-    "Hébergements",
-    "Culture & traditions",
-    "Activités",
-    "Activités enfants",
-    "Brunch",
-  ];
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("slug, updated_at");
 
-  const categorieUrls = categories.map((cat) => ({
-    url: `${baseUrl}/categorie/${encodeURIComponent(cat)}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }));
+  const categorieUrls =
+    categories?.map((cat) => ({
+      url: `${baseUrl}/categorie/${cat.slug}`,
+      lastModified: cat.updated_at ? new Date(cat.updated_at) : new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })) ?? [];
 
   /* ============================================================
-     3️⃣ Villes (récupérées depuis Supabase)
+     3️⃣ Villes
   ============================================================ */
   const { data: villes } = await supabase
     .from("lieux")
@@ -62,7 +54,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   /* ============================================================
-     4️⃣ Pages statiques
+     4️⃣ Articles de blog
+  ============================================================ */
+  const { data: posts } = await supabase
+    .from("blog_posts")
+    .select("slug, updated_at");
+
+  const postUrls =
+    posts?.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updated_at ? new Date(post.updated_at) : new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })) ?? [];
+
+  /* ============================================================
+     5️⃣ Catégories du blog
+  ============================================================ */
+  const { data: blogCategories } = await supabase
+    .from("blog_categories")
+    .select("slug, updated_at");
+
+  const blogCategorieUrls =
+    blogCategories?.map((c) => ({
+      url: `${baseUrl}/blog/categorie/${c.slug}`,
+      lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })) ?? [];
+
+  /* ============================================================
+     6️⃣ Pages statiques (dont Agenda)
   ============================================================ */
   const staticUrls = [
     {
@@ -70,6 +92,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 1,
+    },
+    {
+      url: `${baseUrl}/agenda`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/mes-favoris`,
@@ -86,7 +114,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   /* ============================================================
-     ✅ Fusion et retour du sitemap complet
+     ✅ Fusion & retour
   ============================================================ */
-  return [...staticUrls, ...categorieUrls, ...villeUrls, ...lieuUrls];
+  return [
+    ...staticUrls,
+    ...categorieUrls,
+    ...villeUrls,
+    ...lieuUrls,
+    ...postUrls,
+    ...blogCategorieUrls,
+  ];
 }
