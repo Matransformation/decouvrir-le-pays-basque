@@ -77,3 +77,7 @@ body {
 .fade-in {
   animation: fadeInUp 0.4s ease forwards;
 }
+
+.font-dm {
+  font-family: "DM Sans", sans-serif;
+}

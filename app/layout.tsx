@@ -5,6 +5,10 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ToastWrapper from "./components/ToastWrapper";
 import SessionInitializer from "./components/SessionInitializer";
+import { DM_Sans } from "next/font/google";
+
+const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"] });
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
