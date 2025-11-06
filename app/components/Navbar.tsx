@@ -38,7 +38,6 @@ export default function Navbar() {
   const [weather, setWeather] = useState<{ temp: number; code: number } | null>(null);
   const [user, setUser] = useState<any>(null);
 
-  // Session
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) =>
@@ -47,7 +46,6 @@ export default function Navbar() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Weather
   useEffect(() => {
     (async () => {
       try {
@@ -67,6 +65,7 @@ export default function Navbar() {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setShowMega(true);
   };
+
   const handleLeave = () => {
     closeTimer.current = setTimeout(() => setShowMega(false), 200);
   };
@@ -91,17 +90,13 @@ export default function Navbar() {
           )}
         </Link>
 
-        {/* ✅ MENU DESKTOP */}
+        {/* DESKTOP NAV */}
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-700 relative">
           <Link href="/" className={pathname === "/" ? "text-red-600" : "hover:text-red-600"}>
             Accueil
           </Link>
 
-          {/* ✅ LIEN PROFILS */}
-          <Link
-            href="/profils"
-            className={pathname.startsWith("/profils") ? "text-red-600" : "hover:text-red-600"}
-          >
+          <Link href="/profils" className={pathname.startsWith("/profils") ? "text-red-600" : "hover:text-red-600"}>
             Profils
           </Link>
 
@@ -137,43 +132,46 @@ export default function Navbar() {
             💬 Mes interactions
           </Link>
 
-          {/* Auth */}
-          {!user ? (
-            <div className="flex items-center gap-3">
-              <Link href="/login" className="px-3 py-1.5 border border-gray-300 rounded-full hover:border-red-500 hover:text-red-500">
-                Connexion
-              </Link>
-              <Link href="/register" className="px-3 py-1.5 rounded-full bg-red-600 text-white hover:bg-red-700">
-                S’inscrire
-              </Link>
-            </div>
-          ) : (
-            <Link href="/mon-profil" className="flex items-center gap-2 hover:text-red-600">
+          {/* ✅ AVATAR DESKTOP */}
+          {user ? (
+            <Link href="/mon-profil" className="hover:opacity-80 ml-2">
               <img
                 src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`}
-                className="w-7 h-7 rounded-full border"
+                className="w-8 h-8 rounded-full border"
               />
-              Mon profil
+            </Link>
+          ) : (
+            <Link href="/login" className="hover:text-red-600">
+              👤
             </Link>
           )}
         </nav>
 
-        {/* MOBILE BUTTON */}
+        {/* ✅ AVATAR MOBILE */}
+        {user ? (
+          <Link href="/mon-profil" className="md:hidden mr-3">
+            <img
+              src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`}
+              className="w-8 h-8 rounded-full border"
+            />
+          </Link>
+        ) : (
+          <Link href="/login" className="md:hidden mr-3 text-gray-700 text-xl">
+            👤
+          </Link>
+        )}
+
+        {/* BUTTON MENU MOBILE */}
         <button className="md:hidden text-gray-700" onClick={() => setOpen(!open)}>
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* ✅ MENU MOBILE */}
+      {/* 🔻 MENU MOBILE */}
       {open && (
         <div className="md:hidden bg-white border-t border-gray-200 shadow-lg px-6 py-5 space-y-5">
 
-          {/* ✅ BOUTON PROFILS */}
-          <Link
-            href="/profils"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg font-medium hover:bg-red-100"
-          >
+          <Link href="/profils" onClick={() => setOpen(false)} className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg font-medium hover:bg-red-100">
             🔍 Explorer les profils
           </Link>
 
@@ -211,7 +209,16 @@ export default function Navbar() {
 
           <div className="border-t border-gray-200 pt-4" />
 
-          {!user ? (
+          {/* ✅ Avatar mobile */}
+          {user ? (
+            <Link href="/mon-profil" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg">
+              <img
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`}
+                className="w-8 h-8 rounded-full border"
+              />
+              <span className="font-medium">Mon profil</span>
+            </Link>
+          ) : (
             <div className="flex gap-3">
               <Link href="/login" onClick={() => setOpen(false)} className="flex-1 text-center border border-gray-300 px-4 py-2 rounded-lg">
                 Connexion
@@ -220,14 +227,6 @@ export default function Navbar() {
                 S’inscrire
               </Link>
             </div>
-          ) : (
-            <Link href="/mon-profil" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg">
-              <img
-                src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`}
-                className="w-8 h-8 rounded-full border"
-              />
-              <span className="font-medium">Mon profil</span>
-            </Link>
           )}
         </div>
       )}
