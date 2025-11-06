@@ -15,9 +15,8 @@ export default function MonProfilPage() {
   const [avatar, setAvatar] = useState<string>("");
   const [status, setStatus] = useState<string>("");
 
-  // Charger la session + profil
   useEffect(() => {
-    async function load() {
+    async function loadProfile() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -33,22 +32,19 @@ export default function MonProfilPage() {
       setSessionId(userId);
       setEmail(userEmail);
 
-      // Vérifier si profil existe
-      const { data: existing } = await supabase
+      const { data: user } = await supabase
         .from("users_public")
         .select("*")
         .eq("session_id", userId)
         .maybeSingle();
 
-      // Sinon -> créer
-      if (!existing) {
+      if (!user) {
         await supabase.from("users_public").insert({
           session_id: userId,
           email: userEmail,
         });
       }
 
-      // Charger profil
       const { data } = await supabase
         .from("users_public")
         .select("*")
@@ -64,30 +60,29 @@ export default function MonProfilPage() {
       }
     }
 
-    load();
+    loadProfile();
   }, []);
 
-  // Enregistrer
   async function save() {
-    if (!sessionId) return setStatus("❌ Pas de session détectée");
+    if (!sessionId) return setStatus("❌ Pas de session");
 
     const cleanedSlug = slugify(slug);
 
-    const { data: exists } = await supabase
+    const { data: slugUsed } = await supabase
       .from("users_public")
       .select("id")
       .neq("session_id", sessionId)
       .eq("slug", cleanedSlug)
       .maybeSingle();
 
-    if (exists) return setStatus("⚠️ Ce nom est déjà utilisé.");
+    if (slugUsed) return setStatus("⚠️ Ce nom de profil est déjà pris.");
 
     const payload = {
       session_id: sessionId,
       email,
-      slug: cleanedSlug,
       prenom,
       bio,
+      slug: cleanedSlug,
       avatar_url: avatar,
       tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
     };
@@ -96,33 +91,30 @@ export default function MonProfilPage() {
       .from("users_public")
       .upsert(payload, { onConflict: "session_id" });
 
-    setStatus(error ? "❌ Erreur lors de l’enregistrement" : "✅ Profil mis à jour !");
+    setStatus(error ? "❌ Erreur lors de la sauvegarde" : "✅ Profil mis à jour !");
   }
 
   return (
     <div className="max-w-xl mx-auto py-14 px-6 font-dm">
       <div className="bg-white shadow-md rounded-3xl p-8 space-y-10 border border-gray-100">
 
-        {/* Avatar + Header */}
         <div className="flex flex-col items-center gap-3">
           <AvatarUpload avatarUrl={avatar} onChange={setAvatar} />
 
-          <h1 className="text-3xl font-bold tracking-tight">Mon Profil</h1>
+          <h1 className="text-3xl font-bold">Mon Profil</h1>
 
           <div className="bg-pink-50 text-pink-700 text-xs px-3 py-1.5 rounded-full">
             {email}
           </div>
         </div>
 
-        {/* Form */}
         <div className="space-y-6">
           <div>
             <label className="text-sm font-semibold text-gray-800">Prénom</label>
             <input
               value={prenom}
               onChange={(e) => setPrenom(e.target.value)}
-              placeholder="Ton prénom"
-              className="w-full mt-1 border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-pink-500 outline-none"
+              className="w-full mt-1 border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-pink-500"
             />
           </div>
 
@@ -131,8 +123,7 @@ export default function MonProfilPage() {
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Parle un peu de toi..."
-              className="w-full mt-1 border border-gray-300 rounded-xl px-4 py-3 h-28 resize-none focus:ring-2 focus:ring-pink-500 outline-none"
+              className="w-full mt-1 border border-gray-300 rounded-xl px-4 py-3 h-28 resize-none focus:ring-2 focus:ring-pink-500"
             />
           </div>
 
@@ -142,7 +133,7 @@ export default function MonProfilPage() {
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="brunch, rando, plages..."
-              className="w-full mt-1 border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-pink-500 outline-none"
+              className="w-full mt-1 border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-pink-500"
             />
           </div>
 
@@ -152,7 +143,7 @@ export default function MonProfilPage() {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               placeholder="ex: romain-basque"
-              className="w-full mt-1 border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-pink-500 outline-none"
+              className="w-full mt-1 border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-pink-500"
             />
             <p className="text-xs text-gray-500 mt-1">
               https://decouvrirlepaysbasque.fr/u/{slugify(slug) || "mon-profil"}
@@ -168,21 +159,31 @@ export default function MonProfilPage() {
 
         <button
           onClick={save}
-          className="w-full py-3 rounded-xl text-white font-semibold text-sm transition shadow-md bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90"
+          className="w-full py-3 rounded-xl text-white font-semibold text-sm bg-gradient-to-r from-pink-500 to-purple-600 shadow-md hover:opacity-90"
         >
           Sauvegarder
         </button>
 
+        {slugify(slug) && (
+          <a
+            href={`/u/${slugify(slug)}`}
+            target="_blank"
+            className="block w-full py-3 rounded-xl text-center text-white font-semibold text-sm bg-blue-600 hover:bg-blue-700"
+          >
+            Voir mon profil public 🔍
+          </a>
+        )}
+
         <button
           onClick={async () => {
             await supabase.auth.signOut();
-            localStorage.removeItem("session_id");
             window.location.href = "/login";
           }}
-          className="w-full py-3 rounded-xl text-gray-700 border font-medium hover:bg-gray-50 transition"
+          className="w-full py-3 rounded-xl text-gray-700 border font-medium hover:bg-gray-50"
         >
           Se déconnecter
         </button>
+
       </div>
     </div>
   );
