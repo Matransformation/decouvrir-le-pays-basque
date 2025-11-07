@@ -6,65 +6,72 @@ import Image from "next/image";
 import { supabase } from "../../lib/supabaseClient";
 import { Heart, MapPin } from "lucide-react";
 
-interface Lieu {
-  id: number;
-  nom: string;
-  ville: string;
-  categorie?: string;
-  slug: string;
-  image_url?: string;
-  image_urls?: string[];
-}
-
 export default function FavorisPage() {
-  const [sessionId, setSessionId] = useState<string>("");
-  const [favoris, setFavoris] = useState<Lieu[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [favoris, setFavoris] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🆔 Récupère le session_id du client
+  // ✅ Récupère user connecté
   useEffect(() => {
-    const id = localStorage.getItem("session_id");
-    if (id) setSessionId(id);
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => setUser(session?.user ?? null)
+    );
+
+    return () => authListener.subscription.unsubscribe();
   }, []);
 
-  // 🔹 Récupère les favoris depuis Supabase
+  // ✅ Récupère les favoris liés au user_id
   useEffect(() => {
-    if (!sessionId) return;
+    if (!user) return;
 
     const fetchFavoris = async () => {
       setLoading(true);
+
       const { data, error } = await supabase
         .from("favoris")
-        .select(
-          `
+        .select(`
           id,
           lieu_id,
           lieux ( id, nom, ville, categorie, slug, image_url, image_urls )
-        `
-        )
-        .eq("session_id", sessionId);
+        `)
+        .eq("user_id", user.id);
 
       if (!error && data) {
-        const lieux = data.map((f: any) => f.lieux);
-        setFavoris(lieux);
+        setFavoris(data.map((f: any) => f.lieux));
       }
 
       setLoading(false);
     };
 
     fetchFavoris();
-  }, [sessionId]);
+  }, [user]);
 
-  // ❤️ Supprimer un favori
   const removeFavori = async (lieuId: number) => {
     await supabase
       .from("favoris")
       .delete()
       .eq("lieu_id", lieuId)
-      .eq("session_id", sessionId);
+      .eq("user_id", user.id);
 
     setFavoris((prev) => prev.filter((l) => l.id !== lieuId));
   };
+
+  if (!user)
+    return (
+      <div className="min-h-[60vh] flex flex-col justify-center items-center text-gray-500 text-center">
+        <p className="mb-4">Connecte-toi pour voir tes favoris ❤️</p>
+        <Link
+          href="/login"
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+        >
+          Se connecter
+        </Link>
+      </div>
+    );
 
   if (loading)
     return (
@@ -80,9 +87,7 @@ export default function FavorisPage() {
       </h1>
 
       {favoris.length === 0 ? (
-        <p className="text-center text-gray-500">
-          Vous n’avez encore ajouté aucun lieu à vos favoris.
-        </p>
+        <p className="text-center text-gray-500">Tu n’as encore ajouté aucun lieu.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {favoris.map((lieu) => {
@@ -96,52 +101,27 @@ export default function FavorisPage() {
                 key={lieu.id}
                 className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition relative group"
               >
-                {/* === Lien global sur toute la carte === */}
                 <Link href={`/lieu/${lieu.slug}`} className="absolute inset-0 z-10" />
-
-                {/* === Image === */}
                 <div className="relative w-full h-48">
-                  <Image
-                    src={image}
-                    alt={lieu.nom}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={image} alt={lieu.nom} fill className="object-cover" />
                 </div>
-
-                {/* === Contenu === */}
-                <div className="p-4 flex flex-col justify-between h-full relative z-20">
+                <div className="p-4 flex justify-between items-center z-20 relative">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-800 mb-1">
-                      {lieu.nom}
-                    </h2>
-                    <p className="text-gray-500 text-sm flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {lieu.ville}
+                    <h2 className="text-lg font-semibold">{lieu.nom}</h2>
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
+                      <MapPin className="w-4 h-4" /> {lieu.ville}
                     </p>
-                    {lieu.categorie && (
-                      <p className="text-xs text-gray-400 mt-1 italic">
-                        {lieu.categorie}
-                      </p>
-                    )}
                   </div>
 
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="text-sm font-semibold text-blue-600 opacity-0 group-hover:opacity-100 transition">
-                      Voir le lieu →
-                    </span>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        removeFavori(lieu.id);
-                      }}
-                      className="text-red-600 hover:text-red-700 transition"
-                    >
-                      <Heart className="w-5 h-5 fill-red-600" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      removeFavori(lieu.id);
+                    }}
+                    className="text-red-600 hover:text-red-700 transition"
+                  >
+                    <Heart className="w-5 h-5 fill-red-600" />
+                  </button>
                 </div>
               </div>
             );

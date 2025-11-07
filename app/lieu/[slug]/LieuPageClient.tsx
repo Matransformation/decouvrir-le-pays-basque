@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { supabase } from "../../../lib/supabaseClient";
 import { Heart } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
 import StarRating from "../../components/StarRating";
 import CommentSection from "../../components/CommentSection";
 
@@ -32,35 +31,40 @@ interface Props {
 
 export default function LieuPageClient({ lieu, images }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [sessionId, setSessionId] = useState<string>("");
   const [isFav, setIsFav] = useState(false);
   const [favCount, setFavCount] = useState(0);
   const [sommaire, setSommaire] = useState<{ id: string; titre: string }[]>([]);
+  const [user, setUser] = useState<any>(null);
 
-  // 🆔 Gestion session utilisateur (favoris)
+  // ✅ Récupère l'utilisateur connecté
   useEffect(() => {
-    let stored = localStorage.getItem("session_id");
-    if (!stored) {
-      stored = uuidv4();
-      localStorage.setItem("session_id", stored);
-    }
-    setSessionId(stored);
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
-  // ❤️ Favoris
+  // ✅ Charge l'état du favori
   useEffect(() => {
-    if (!sessionId) return;
+    if (!user) return;
 
     const fetchFavoris = async () => {
-      const { data: userFav } = await supabase
+      // Trouver si ce lieu est déjà dans les favoris de l'user
+      const { data: rows } = await supabase
         .from("favoris")
         .select("id")
         .eq("lieu_id", lieu.id)
-        .eq("session_id", sessionId)
-        .maybeSingle();
+        .eq("user_id", user.id)
+        .limit(1);
 
-      if (userFav) setIsFav(true);
+      setIsFav((rows?.length ?? 0) > 0);
 
+      // Compte total
       const { count } = await supabase
         .from("favoris")
         .select("*", { count: "exact", head: true })
@@ -70,37 +74,49 @@ export default function LieuPageClient({ lieu, images }: Props) {
     };
 
     fetchFavoris();
-  }, [sessionId, lieu.id]);
+  }, [user, lieu.id]);
 
+  // ✅ Bouton favoris
   const toggleFavori = async () => {
-    if (!sessionId) return;
-
+    if (!user) {
+      if (
+        confirm(
+          "Pour ajouter des favoris et les retrouver partout, crée-toi un compte 😊\n\nVoulez-vous créer un compte maintenant ?"
+        )
+      ) {
+        window.location.href = "/login";
+      }
+      return;
+    }
+  
     if (isFav) {
       await supabase
         .from("favoris")
         .delete()
         .eq("lieu_id", lieu.id)
-        .eq("session_id", sessionId);
+        .eq("user_id", user.id);
+  
       setIsFav(false);
       setFavCount((c) => Math.max(0, c - 1));
     } else {
-      await supabase.from("favoris").insert({
-        lieu_id: lieu.id,
-        session_id: sessionId,
-      });
+      const { error } = await supabase
+        .from("favoris")
+        .insert({ lieu_id: lieu.id, user_id: user.id })
+        .select(); // ← IMPORTANT
+  
+      if (error) console.log("❌ Erreur insert favori :", error);
+  
       setIsFav(true);
       setFavCount((c) => c + 1);
     }
   };
+  
+  
 
-  const nextImage = () =>
-    setCurrentIndex((prev) => (prev + 1) % images.length);
-  const prevImage = () =>
-    setCurrentIndex((prev) =>
-      prev === 0 ? images.length - 1 : prev - 1
-    );
+  const nextImage = () => setCurrentIndex((prev) => (prev + 1) % images.length);
+  const prevImage = () => setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
 
-  // 🧭 Génère un sommaire depuis les <h2> de la description longue
+  // 🧭 Sommaire depuis les <h2>
   useEffect(() => {
     if (!lieu.description_longue) return;
     const parser = new DOMParser();
@@ -114,20 +130,12 @@ export default function LieuPageClient({ lieu, images }: Props) {
     setSommaire(toc);
   }, [lieu.description_longue]);
 
-  // 💡 Ajoute des IDs aux H2 dans le rendu HTML
-  const descriptionAvecIds = () => {
-    if (!lieu.description_longue) return lieu.description || "";
-    return lieu.description_longue.replace(
-      /<h2>(.*?)<\/h2>/g,
-      (_, titre, i) => `<h2 id="section-${i}">${titre}</h2>`
-    );
-  };
-
   const hasImages = images && images.length > 0 && images[0];
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-12">
-      {/* === CARROUSEL (affiché seulement si image) === */}
+
+      {/* === CARROUSEL === */}
       {hasImages && (
         <div className="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-md mb-6">
           <Image
@@ -153,16 +161,6 @@ export default function LieuPageClient({ lieu, images }: Props) {
               >
                 ›
               </button>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {images.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-2 w-2 rounded-full ${
-                      i === currentIndex ? "bg-white" : "bg-white/50"
-                    }`}
-                  />
-                ))}
-              </div>
             </>
           )}
         </div>
@@ -178,11 +176,7 @@ export default function LieuPageClient({ lieu, images }: Props) {
               : "bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200"
           }`}
         >
-          <Heart
-            className={`w-5 h-5 ${
-              isFav ? "fill-red-600 text-red-600" : "text-gray-500"
-            }`}
-          />
+          <Heart className={`w-5 h-5 ${isFav ? "fill-red-600 text-red-600" : "text-gray-500"}`} />
           {isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
         </button>
 
@@ -209,17 +203,13 @@ export default function LieuPageClient({ lieu, images }: Props) {
           </div>
         )}
 
-        {/* 📚 Sommaire automatique */}
         {sommaire.length > 0 && (
           <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl shadow-sm">
             <h3 className="font-semibold text-gray-800 mb-2">Sommaire</h3>
             <ul className="list-disc list-inside space-y-1 text-gray-600">
               {sommaire.map((item) => (
                 <li key={item.id}>
-                  <a
-                    href={`#${item.id}`}
-                    className="text-red-600 hover:underline"
-                  >
+                  <a href={`#${item.id}`} className="text-red-600 hover:underline">
                     {item.titre}
                   </a>
                 </li>
@@ -228,48 +218,28 @@ export default function LieuPageClient({ lieu, images }: Props) {
           </div>
         )}
 
-        {/* 📝 Description SEO riche */}
-{(lieu.description_longue || lieu.description) && (
-  <div className="prose max-w-none text-gray-800">
-    <h2 className="text-2xl font-bold mt-6 mb-3 text-gray-900">Présentation</h2>
-    <div
-      className="[&_h2]:text-xl [&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:font-semibold
-                  [&_h3]:text-lg [&_h3]:mt-4 [&_h3]:mb-2
-                  [&_p]:leading-relaxed [&_ul]:list-disc [&_ul]:pl-5"
-      dangerouslySetInnerHTML={{
-        __html: lieu.description_longue || lieu.description || "",
-      }}
-    />
-  </div>
-)}
+        {(lieu.description_longue || lieu.description) && (
+          <div className="prose max-w-none text-gray-800">
+            <h2 className="text-2xl font-bold mt-6 mb-3 text-gray-900">Présentation</h2>
+            <div
+              className="[&_h2]:text-xl [&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:font-semibold"
+              dangerouslySetInnerHTML={{
+                __html: lieu.description_longue || lieu.description || "",
+              }}
+            />
+          </div>
+        )}
 
-
-        {/* ℹ️ Bloc Infos pratiques */}
-        {(lieu.adresse ||
-          lieu.site_web ||
-          lieu.telephone ||
-          lieu.instagram ||
-          lieu.facebook) && (
+        {(lieu.adresse || lieu.site_web || lieu.telephone || lieu.instagram || lieu.facebook) && (
           <div className="mt-8 border-t border-gray-200 pt-4 space-y-2">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              📍 Infos pratiques
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">📍 Infos pratiques</h3>
 
-            {lieu.adresse && (
-              <p className="text-gray-700">📍 {lieu.adresse}</p>
-            )}
-            {lieu.telephone && (
-              <p className="text-gray-700">📞 {lieu.telephone}</p>
-            )}
+            {lieu.adresse && <p className="text-gray-700">📍 {lieu.adresse}</p>}
+            {lieu.telephone && <p className="text-gray-700">📞 {lieu.telephone}</p>}
             {lieu.site_web && (
               <p>
                 🌐{" "}
-                <a
-                  href={lieu.site_web}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
+                <a href={lieu.site_web} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                   {lieu.site_web}
                 </a>
               </p>
@@ -277,12 +247,7 @@ export default function LieuPageClient({ lieu, images }: Props) {
             {lieu.instagram && (
               <p>
                 📸{" "}
-                <a
-                  href={lieu.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-pink-500 hover:underline"
-                >
+                <a href={lieu.instagram} target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:underline">
                   Instagram
                 </a>
               </p>
@@ -290,12 +255,7 @@ export default function LieuPageClient({ lieu, images }: Props) {
             {lieu.facebook && (
               <p>
                 💬{" "}
-                <a
-                  href={lieu.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
+                <a href={lieu.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                   Facebook
                 </a>
               </p>
@@ -303,16 +263,12 @@ export default function LieuPageClient({ lieu, images }: Props) {
           </div>
         )}
 
-        {/* ⭐ Bloc notation */}
         <div className="pt-4 border-t border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Note ce lieu
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Note ce lieu</h2>
           <StarRating lieuId={lieu.id} />
         </div>
       </div>
 
-      {/* 💬 Commentaires */}
       <CommentSection lieuId={lieu.id} />
     </main>
   );
