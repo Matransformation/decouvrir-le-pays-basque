@@ -511,15 +511,17 @@ export default async function CategoriePage({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {lieux.map((lieu) => (
-            <LieuCard
-              key={lieu.slug}
-              lieu={{
-                ...lieu,
-                image_url:
-                  lieu.image_urls?.[0] ||
-                  "https://res.cloudinary.com/diccvjf98/image/upload/v1730364100/fallback.jpg",
-              }}
-            />
+           <LieuCard
+           key={lieu.slug}
+           lieu={{
+             ...lieu,
+             image_url:
+               lieu.image_url ||
+               lieu.image_urls?.[0] ||
+               "https://res.cloudinary.com/diccvjf98/image/upload/v1730364100/fallback.jpg",
+           }}
+         />
+         
           ))}
         </div>
       </section>

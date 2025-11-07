@@ -147,24 +147,25 @@ export default function Navbar() {
           )}
         </nav>
 
-        {/* ✅ AVATAR MOBILE */}
-        {user ? (
-          <Link href="/mon-profil" className="md:hidden mr-3">
-            <img
-              src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`}
-              className="w-8 h-8 rounded-full border"
-            />
-          </Link>
-        ) : (
-          <Link href="/login" className="md:hidden mr-3 text-gray-700 text-xl">
-            👤
-          </Link>
-        )}
+        <div className="flex items-center gap-3 md:hidden">
+  {user ? (
+    <Link href="/mon-profil">
+      <img
+        src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`}
+        className="w-8 h-8 rounded-full border hover:opacity-80 transition"
+      />
+    </Link>
+  ) : (
+    <Link href="/login" className="text-gray-700 text-xl hover:text-red-600">
+      👤
+    </Link>
+  )}
 
-        {/* BUTTON MENU MOBILE */}
-        <button className="md:hidden text-gray-700" onClick={() => setOpen(!open)}>
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+  <button className="text-gray-700" onClick={() => setOpen(!open)}>
+    {open ? <X size={24} /> : <Menu size={24} />}
+  </button>
+</div>
+
       </div>
 
       {/* 🔻 MENU MOBILE */}

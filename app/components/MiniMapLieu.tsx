@@ -1,19 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect } from "react";
-
-// ✅ Corrige le bug d’icône Leaflet sous Next.js
-const icon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
 
 interface MiniMapLieuProps {
   latitude: number;
@@ -22,14 +12,17 @@ interface MiniMapLieuProps {
   ville?: string;
 }
 
+// ✅ Icône rouge personnalisée
+const redIcon = L.icon({
+  iconUrl: "/marker-red.png",
+  iconSize: [60, 60],
+  iconAnchor: [19, 38],
+});
+
 export default function MiniMapLieu({ latitude, longitude, nom, ville }: MiniMapLieuProps) {
-  // 🔹 S'assure que Leaflet s'affiche correctement côté client
   useEffect(() => {
+    // Fix affichage Leaflet côté client
     delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    });
   }, []);
 
   if (!latitude || !longitude) {
@@ -49,10 +42,11 @@ export default function MiniMapLieu({ latitude, longitude, nom, ville }: MiniMap
         style={{ height: "300px", width: "100%" }}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
+          attribution='&copy; OpenStreetMap France'
         />
-        <Marker position={[latitude, longitude]} icon={icon}>
+
+        <Marker position={[latitude, longitude]} icon={redIcon}>
           <Popup>
             <strong>{nom}</strong>
             <br />

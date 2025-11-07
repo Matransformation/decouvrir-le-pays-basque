@@ -121,18 +121,28 @@ export default function LieuxClient({
         <div className="divide-y border rounded-lg max-h-[60vh] overflow-auto bg-white shadow-sm">
           {lieuxFiltres.map((l) => (
             <div
-              key={l.id}
-              className={`p-3 cursor-pointer hover:bg-blue-50 transition ${
-                selectedLieu?.id === l.id ? "bg-blue-100" : ""
-              }`}
-              onClick={() => setSelectedLieu(l)}
-            >
+            key={l.id}
+            className={`p-3 flex items-center gap-3 cursor-pointer hover:bg-blue-50 transition ${
+              selectedLieu?.id === l.id ? "bg-blue-100" : ""
+            }`}
+            onClick={() => setSelectedLieu(l)}
+          >
+            {/* ✅ On affiche l'image à partir de l'image_url */}
+            <img
+              src={l.image_url || "/placeholder.jpg"}
+              alt={l.nom}
+              className="w-16 h-16 rounded-lg object-cover"
+            />
+            
+            <div>
               <p className="font-semibold text-gray-800">{l.nom}</p>
               <p className="text-gray-600 text-sm">{l.ville}</p>
               {l.categorie && (
                 <p className="text-xs text-gray-500 italic">{l.categorie}</p>
               )}
             </div>
+          </div>
+          
           ))}
         </div>
       </div>
